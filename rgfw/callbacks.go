@@ -1,7 +1,7 @@
 package rgfw
 
 /*
-	#include "../third_party/RGFW.h"
+	#include "RGFW.h"
 	void RFGW_setWindowMovedCallbackCB();
 	void RFGW_setWindowResizedCallbackCB();
 	void RFGW_setWindowRestoredCallbackCB();

@@ -1,5 +1,5 @@
 #pragma once
-#include "../third_party/RGFW.h"
+#include "RGFW.h"
 
 typedef struct {
     RGFW_eventType eventType;
