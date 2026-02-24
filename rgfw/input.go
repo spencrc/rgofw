@@ -11,9 +11,22 @@ import (
 type Window struct {
 	ref *C.RGFW_window
 
-	fWindowMoved    WindowMovedCallback
-	fWindowResized  func(win *Window, w int32, h int32)
-	fWindowRestored func(win *Window, x int32, y int32, w int32, h int32)
+	fWindowMoved     WindowMovedCallback
+	fWindowResized   WindowResizedCallback
+	fWindowRestored  WindowRestoredCallback
+	fWindowMaximized WindowMaximizedCallback
+	fWindowMinimized WindowMinimizedCallback
+	fWindowQuit      WindowQuitCallback
+	fFocus           FocusCallback
+	fMouseNotify     MouseNotifyCallback
+	fMousePos        MousePosCallback
+	fDataDrag        DataDragCallback
+	fWindowRefresh   WindowRefreshCallback
+	fKey             KeyCallback
+	fMouseButton     MouseButtonCallback
+	fMouseScroll     MouseScrollCallback
+	fDataDrop        DataDropCallback
+	fScaleUpdated    ScaleUpdatedCallback
 }
 
 // Returns true if the key is pressed during the current frame
