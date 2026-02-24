@@ -9,7 +9,9 @@ import "C"
 //export goWindowMovedCB
 func goWindowMovedCB(win *C.RGFW_window, x, y C.i32) {
 	goWin := windows.get(win)
-	goWin.fWindowMoved(goWin, int32(x), int32(y))
+	if goWin.fWindowMoved != nil {
+		goWin.fWindowMoved(goWin, int32(x), int32(y))
+	}
 }
 
 //export goWindowResizedCB
