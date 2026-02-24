@@ -17,7 +17,9 @@ func goWindowMovedCB(win *C.RGFW_window, x, y C.i32) {
 //export goWindowResizedCB
 func goWindowResizedCB(win *C.RGFW_window, w, h C.i32) {
 	goWin := windows.get(win)
-	goWin.fWindowResized(goWin, int32(w), int32(h))
+	if goWin.fWindowMoved != nil {
+		goWin.fWindowResized(goWin, int32(w), int32(h))
+	}
 }
 
 //export goWindowRestoredCB
@@ -53,6 +55,7 @@ type DataDropCallback func(win *C.RGFW_window, files *C.char)
 type ScaleUpdatedCallback func(win *C.RGFW_window, scaleX, scaleY C.float)
 
 type WindowMovedCallback func(win *Window, x int32, y int32)
+
 func (win *Window) SetWindowMovedCallback(callback WindowMovedCallback) (previous WindowMovedCallback) {
 	previous = win.fWindowMoved
 	win.fWindowMoved = callback

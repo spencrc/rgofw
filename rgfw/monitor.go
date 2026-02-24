@@ -6,8 +6,8 @@ package rgfw
 import "C"
 
 type MonitorMode struct {
-	W, H int32 /*!< monitor workarea size */
-	RefreshRate uint32
+	W, H             int32 /*!< monitor workarea size */
+	RefreshRate      uint32
 	Red, Blue, Green uint8
 }
 
@@ -23,33 +23,33 @@ func (m MonitorMode) toC() C.RGFW_monitorMode {
 }
 
 type Monitor struct {
-	X, Y int32 /*!< x - y of the monitor workarea */
-	Name string /*!< monitor name */
+	X, Y           int32   /*!< x - y of the monitor workarea */
+	Name           string  /*!< monitor name */
 	ScaleX, ScaleY float32 /*!< monitor content scale */
-	PixelRatio float32 /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
-	PhysW, PhysH float32 /*!< monitor physical size in inches */
-	Mode MonitorMode
+	PixelRatio     float32 /*!< pixel ratio for monitor (1.0 for regular, 2.0 for hiDPI)  */
+	PhysW, PhysH   float32 /*!< monitor physical size in inches */
+	Mode           MonitorMode
 }
 
 func goMonitor(m C.RGFW_monitor) Monitor {
 	mode := MonitorMode{
-		W: int32(m.mode.w),
-		H: int32(m.mode.h),
+		W:           int32(m.mode.w),
+		H:           int32(m.mode.h),
 		RefreshRate: uint32(m.mode.refreshRate),
-		Red: uint8(m.mode.red),
-		Blue: uint8(m.mode.blue),
-		Green: uint8(m.mode.green),
+		Red:         uint8(m.mode.red),
+		Blue:        uint8(m.mode.blue),
+		Green:       uint8(m.mode.green),
 	}
 	return Monitor{
-		X: int32(m.x),
-		Y: int32(m.y),
-		Name: C.GoStringN(&m.name[0], 128),
-		ScaleX: float32(m.scaleX),
-		ScaleY: float32(m.scaleY),
+		X:          int32(m.x),
+		Y:          int32(m.y),
+		Name:       C.GoStringN(&m.name[0], 128),
+		ScaleX:     float32(m.scaleX),
+		ScaleY:     float32(m.scaleY),
 		PixelRatio: float32(m.pixelRatio),
-		PhysW: float32(m.physW),
-		PhysH: float32(m.physH),
-		Mode: mode,
+		PhysW:      float32(m.physW),
+		PhysH:      float32(m.physH),
+		Mode:       mode,
 	}
 }
 
@@ -61,25 +61,25 @@ func (m Monitor) toC() C.RGFW_monitor {
 	}
 
 	return C.RGFW_monitor{
-		x: C.i32(m.X),
-		y: C.i32(m.Y),
-		name: name,
-		scaleX: C.float(m.ScaleX),
-		scaleY: C.float(m.ScaleY),
+		x:          C.i32(m.X),
+		y:          C.i32(m.Y),
+		name:       name,
+		scaleX:     C.float(m.ScaleX),
+		scaleY:     C.float(m.ScaleY),
 		pixelRatio: C.float(m.PixelRatio),
-		physW: C.float(m.PhysW),
-		physH: C.float(m.PhysH),
-		mode: m.Mode.toC(),
+		physW:      C.float(m.PhysW),
+		physH:      C.float(m.PhysH),
+		mode:       m.Mode.toC(),
 	}
 }
 
 type ModeRequest uint8
 
 const (
-	MonitorScale ModeRequest = C.RGFW_monitorScale
+	MonitorScale   ModeRequest = C.RGFW_monitorScale
 	MonitorRefresh ModeRequest = C.RGFW_monitorRefresh
-	MonitorRGB ModeRequest = C.RGFW_monitorRGB
-	MonitorAll ModeRequest = C.RGFW_monitorAll
+	MonitorRGB     ModeRequest = C.RGFW_monitorRGB
+	MonitorAll     ModeRequest = C.RGFW_monitorAll
 )
 
 // Scales the window to match its monitor’s resolution.
