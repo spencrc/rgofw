@@ -2,7 +2,7 @@ package rgfw
 
 /*
 	#include "RFGW_impl.h"
-	#include "event_data.h"
+	#include "window_management.h"
 */
 import "C"
 import "unsafe"
