@@ -277,10 +277,16 @@ func (win *Window) IsDataDragging() bool {
 }
 
 // Gets the position of a data drag
-// RGFW_window_getDataDrag
+func (win *Window) GetDataDrag() (activeDrag bool, x, y int32) {
+	var cX, cY C.i32
+	res := C.RGFW_window_getDataDrag(win.ref, &cX, &cY)
+	return res == C.RGFW_TRUE, int32(cX), int32(cY)
+}
 
 // Checks if a data drop occurred in the window (first frame only)
-// RGFW_window_didDataDrop
+func (win *Window) DidDataDrop() bool {
+	return C.RGFW_window_didDataDrop(win.ref) == C.RGFW_TRUE
+}
 
 // Retrieves files from a data drop (drag and drop)
 // RGFW_window_getDataDrop
@@ -301,7 +307,9 @@ func (win *Window) Move(x, y int32) {
 }
 
 // Moves the window to a specific monitor
-// RGFW_window_moveToMonitor
+func (win *Window) MoveToMonitor(m Monitor) {
+	C.RGFW_window_moveToMonitor(win.ref, m.toC())
+}
 
 // Resizes the window to the given dimensions
 func (win *Window) Resize(w, h int32) {
@@ -418,7 +426,9 @@ func (win *Window) SetName(name string) {
 // RGFW_window_setMouseStandard
 
 // Sets the mouse to the default cursor icon.
-// RGFW_window_setMouseDefault
+func (win *Window) SetMouseDefault() bool {
+	return C.RGFW_window_setMouseDefault(win.ref) == C.RGFW_TRUE
+}
 
 // Set (enable or disable) raw mouse mode only for the select window
 // RGFW_window_setRawMouseMode
@@ -459,16 +469,19 @@ func (win *Window) SetShouldClose(shouldClose bool) {
 	C.RGFW_window_setShouldClose(win.ref, C.RGFW_bool(boolToInt(shouldClose)))
 }
 
-func GetGlobalMouse() (int32, int32) {
-	var x, y C.i32
-	C.RGFW_getGlobalMouse(&x, &y)
-	return int32(x), int32(y)
+func GetGlobalMouse() (x, y int32) {
+	var cX, cY C.i32
+	C.RGFW_getGlobalMouse(&cX, &cY)
+	return int32(cX), int32(cY)
 }
 
 // Retrieves the mouse position relative to the window.
 // success is true if the position was successfully retrieved
-// RGFW_window_getMouse
-
+func (win *Window) GetMouse() (x, y int32) {
+	var cX, cY C.i32
+	C.RGFW_window_getMouse(win.ref, &cX, &cY)
+	return int32(cX), int32(cY)
+}
 // Shows or hides the mouse cursor for the window.
 func (win *Window) ShowMouse(show bool) {
 	C.RGFW_window_showMouse(win.ref, C.RGFW_bool(boolToInt(show)))

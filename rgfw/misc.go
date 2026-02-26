@@ -8,6 +8,14 @@ import "unsafe"
 
 type Surface struct {
 	ref *C.RGFW_surface
+	buf unsafe.Pointer
+
+	Data []uint8
+}
+
+type Mouse struct {
+	ref *C.RGFW_mouse
+	buf unsafe.Pointer
 }
 
 // Allocates memory using the allocator defined by RGFW_ALLOC at compile time.
@@ -83,45 +91,61 @@ func GetDisplayWayland() unsafe.Pointer {
 // RGFW_sizeofSurface
 
 // Creates a new surface from raw pixel data.
-// NOTE: On X11, this uses the root window's visual, which may fail to render
-// on any other window if the visual does not match. RGFW_window_createSurface
-// and RGFW_window_createSurfacePtr exist only for X11 to address this issue.
-// You can also manually set the root window with RGFW_setRootWindow.
-// RGFW_createSurface
-
-// Creates a new surface from raw pixel data.
+//
+// You MUST call Surface.Free() sometime after this function, or you WILL leak memory!
 //
 // NOTE: when you create a surface using rgfw.CreateSurface, on X11 it uses the root window's visual
 // this means it may fail to render on any other window if the visual does not match
 // rgfw.CreateSurface exist only for X11 to address this issues
 // Of course, you can also manually set the root window with rgfw.SetRootWindow
-// func CreateSurface(data []uint8, w, h int32, format Format) *Surface {
-// 	ref := C.RGFW_createSurface(
-//         (*C.u8)(unsafe.Pointer(&data[0])),
-//         C.i32(w),
-//         C.i32(h),
-//         C.RGFW_format(format),
-//     )
-// 	return &Surface{ref}
-// }
+func CreateSurface(w, h int32, format Format) *Surface {
+	size := C.size_t(w * h * 4)
+	buf := C.RGFW_ALLOC(size)
+
+	ref := C.RGFW_createSurface(
+        (*C.u8)(buf),
+        C.i32(w),
+        C.i32(h),
+        C.RGFW_format(format),
+    )
+
+	data := unsafe.Slice((*uint8)(buf), size)
+
+	return &Surface{
+		ref: ref, 
+		buf: buf, 
+		Data: data,
+	}
+}
 
 // INTENTIONALLY UNIMPLEMENTED. WILL NOT ADD
 // Creates a surface using a pre-allocated RGFW_surface structure.
 // RGFW_createSurfacePtr
 
 // Retrieves the native image associated with a surface.
-// RGFW_nativeImage* RGFW_surface_getNativeImage(RGFW_surface* surface);
+func (surface *Surface) GetNativeImage() unsafe.Pointer {
+	return unsafe.Pointer(C.RGFW_surface_getNativeImage(surface.ref))
+}
 
 // Frees the surface pointer and any buffers used for software rendering.
-// RGFW_surface_free
+func (surface *Surface) Free() {
+	buffer := surface.buf
+	C.RGFW_surface_free(surface.ref)
+	C.RGFW_FREE(buffer)
+}
 
 // Frees only the internal buffers used for software rendering, leaving the surface struct intact.
-// RGFW_surface_freePtr
+func (surface *Surface) FreePtr() {
+	C.RGFW_surface_freePtr(surface.ref)
+}
 
 // Loads a mouse icon from bitmap data (similar to win.SetIcon)
 //
 // Note: The icon is not resized by default
-// RGFW_loadMouse
+func LoadMouse(data []uint8, w, h int32, format Format) *Mouse {
+	// data is pixels of an image! 
+	panic("Unimplemented")
+}
 
 // Frees the data associated with an RGFW_mouse structure
 // RGFW_freeMouse

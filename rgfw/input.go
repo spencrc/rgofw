@@ -92,34 +92,54 @@ func CreateWindow(name string, x, y, w, h int32, flags WindowFlag) *Window {
 
 // INTENTIONALLY UNIMPLEMENTED. WILL NOT ADD
 // Creates a new window using a pre-allocated window structure.
-// RGFW_createWindowPtr
+// func CreateWindowPtr(name string, x, y, w, h int32, flags WindowFlag, win *Window) *Window
 
 // Creates a new surface structure
-// Can throw an error! See RGFW_window_createSurfacePtr
-// RGFW_window_createSurface
+func (win *Window) CreateSurface(w, h int32, format Format) *Surface {
+	size := C.size_t(w * h * 4)
+	buf := C.RGFW_ALLOC(size)
+
+	ref := C.RGFW_window_createSurface(
+		win.ref,
+        (*C.u8)(buf),
+        C.i32(w),
+        C.i32(h),
+        C.RGFW_format(format),
+    )
+
+	data := unsafe.Slice((*uint8)(buf), size)
+
+	return &Surface{
+		ref: ref, 
+		buf: buf, 
+		Data: data,
+	}
+}
 
 // INTENTIONALLY UNIMPLEMENTED. WILL NOT ADD
 // Creates a new surface structure using a pre-allocated surface structure
 // RGFW_window_createSurfacePtr
 
 // Blits a surface stucture to the window
-// RGFW_window_blitSurface
+func (win *Window) BlitSurface(surface *Surface) {
+	C.RGFW_window_blitSurface(win.ref, surface.ref)
+}
 
 // Gets the position of the window
-func (win *Window) GetPosition() (int32, int32) {
-	var x, y C.i32
-	C.RGFW_window_getPosition(win.ref, &x, &y)
-	return int32(x), int32(y)
+func (win *Window) GetPosition() (x, y int32) {
+	var cX, cY C.i32
+	C.RGFW_window_getPosition(win.ref, &cX, &cY)
+	return int32(cX), int32(cY)
 }
 
 // Gets the size of the window
-func (win *Window) GetSize() (int32, int32) {
-	var w, h C.i32
-	C.RGFW_window_getSize(win.ref, &w, &h)
-	return int32(w), int32(h)
+func (win *Window) GetSize() (w, h int32) {
+	var cW, cH C.i32
+	C.RGFW_window_getSize(win.ref, &cW, &cH)
+	return int32(cW), int32(cH)
 }
 
-// NOT AVAILABLE IN CURRENT RGFW VERSION (1.8.5) BUT AVAILABLE IN 2.0.0
+// NOT AVAILABLE IN CURRENT RGFW VERSION (1.8.1) BUT AVAILABLE IN 2.0.0
 // Gets the size of the window in exact pixels
 // func (win *Window) GetSizeInPixels() (int32, int32) {
 // 	var w, h C.i32
@@ -163,18 +183,19 @@ func (win *Window) SetEventState(event EventFlag, state bool) {
 }
 
 // Gets the user pointer associated with the window
-// func (win *Window) GetUserPtr() unsafe.Pointer {
-//     return C.RGFW_window_getUserPtr(win.ref)
-// }
+func (win *Window) GetUserPtr() unsafe.Pointer {
+    return unsafe.Pointer(C.RGFW_window_getUserPtr(win.ref))
+}
 
 // Sets a user pointer for the window
-// func (win *Window) SetUserPtr(ptr unsafe.Pointer) {
-//     C.RGFW_window_setUserPtr(win.ref, ptr)
-// }
+func (win *Window) SetUserPtr(ptr unsafe.Pointer) {
+    C.RGFW_window_setUserPtr(win.ref, ptr)
+}
 
-// INTENTIONALLY UNIMPLEMENTED. WILL NOT ADD
-// Retrieves the platform-specific window source pointer
-// RGFW_window_getSrc
+// Retrieves the platform-specific window source pointer for the underlying windowing API (e.g. winapi, wayland, cocoa, etc)
+func (win *Window) GetSrc() unsafe.Pointer {
+	return unsafe.Pointer(C.RGFW_window_getSrc(win.ref))
+}
 
 // Sets the macOS layer object associated with the window.
 // Returns a pointer to the macOS layer object
@@ -202,8 +223,8 @@ func (win *Window) GetHDC() unsafe.Pointer {
 
 // Retrieves the X11 Window handle for the window.
 // Returns the X11 Window handle, or 0 if not on X11
-func (win *Window) GetWindowX11() uint32 {
-	return uint32(C.RGFW_window_getWindow_X11(win.ref))
+func (win *Window) GetWindowX11() uint64 {
+	return uint64(C.RGFW_window_getWindow_X11(win.ref))
 }
 
 // Retrieves the Wayland surface handle for the window.
