@@ -10,7 +10,7 @@ import (
 
 // Internal window logic. Taken from https://github.com/go-gl/glfw/blob/master/v3.3/glfw/window.go
 type windowMap struct {
-	m sync.Mutex
+	m     sync.Mutex
 	cToGo map[*C.RGFW_window]*Window
 }
 
@@ -29,7 +29,7 @@ func (wl *windowMap) remove(ref *C.RGFW_window) {
 }
 
 func (wl *windowMap) get(ref *C.RGFW_window) *Window {
-    wl.m.Lock()
-    defer wl.m.Unlock()
-    return wl.cToGo[ref]
+	wl.m.Lock()
+	defer wl.m.Unlock()
+	return wl.cToGo[ref]
 }
