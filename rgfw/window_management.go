@@ -77,27 +77,19 @@ type CommonEvent struct {
 }
 
 type MouseButtonEvent struct {
-	Type   EventType
-	Window *Window
 	Value  MouseButton
 }
 
 type MouseScrollEvent struct {
-	Type   EventType
-	Window *Window
 	X, Y   float32
 }
 
 type MousePosEvent struct {
-	Type       EventType
-	Window     *Window
 	X, Y       int32
 	VecX, VecY float32
 }
 
 type KeyEvent struct {
-	Type   EventType
-	Window *Window
 	Value  Key
 	Repeat bool
 	Mod    Keymod
@@ -110,21 +102,15 @@ type KeyEvent struct {
 // }
 
 type DataDropEvent struct {
-	Type   EventType
-	Window *Window
 	Files  []string // Converted from char** for Go-friendliness
 	Count  uint64   // size_t
 }
 
 type DataDragEvent struct {
-	Type   EventType
-	Window *Window
 	X, Y   int32
 }
 
 type ScaleUpdatedEvent struct {
-	Type   EventType
-	Window *Window
 	X, Y   float32
 }
 
@@ -162,17 +148,30 @@ func getEventData(cEvent *C.RGFW_event, win *Window) Event {
 	switch eventType {
 	case EventKeyPressed, EventKeyReleased:
 		goEvent.Key = KeyEvent{
-			Type:   eventType,
-			Window: win,
 			Value:  Key(data.keyValue),
 			Repeat: data.keyRepeat == C.RGFW_TRUE,
 			Mod:    Keymod(data.keyMod),
 		}
 	case EventMouseButtonPressed, EventMouseButtonReleased:
 		goEvent.Button = MouseButtonEvent{
-			Type:   eventType,
-			Window: win,
 			Value:  MouseButton(data.mouseButtonValue),
+		}
+	case EventMouseScroll:
+		goEvent.Scroll = MouseScrollEvent{
+			X: float32(data.mouseScrollX),
+			Y: float32(data.mouseScrollY),
+		}
+	case EventMousePosChanged:
+		goEvent.Mouse = MousePosEvent{
+			X: int32(data.mousePosX),
+			Y: int32(data.mousePosY),
+			VecX: float32(data.mousePosVecX),
+			VecY: float32(data.mousePosVecY),
+		}
+	case EventMouseEnter, EventMouseLeave:
+		goEvent.Mouse = MousePosEvent{
+			X: int32(data.mousePosX),
+			Y: int32(data.mousePosY),
 		}
 	}
 
@@ -414,40 +413,57 @@ func (win *Window) SetName(name string) {
 }
 
 // Sets the icon for the window and taskbar
-// RGFW_window_setIcon
+func (win *Window) SetIcon(data []uint8, w, h int32, format Format) bool {
+	return C.RGFW_window_setIcon(
+		win.ref,
+    	(*C.u8)(unsafe.Pointer((unsafe.SliceData(data)))),
+        C.i32(w),
+        C.i32(h),
+        C.RGFW_format(format),
+    ) == C.RGFW_TRUE
+}
 
 // Sets the icon for the window and/or taskbar
-// RGFW_window_setIconEx
+func (win *Window) SetIconEx(data []uint8, w, h int32, format Format, t Icon) bool {
+	return C.RGFW_window_setIconEx(
+		win.ref,
+    	(*C.u8)(unsafe.Pointer((unsafe.SliceData(data)))),
+        C.i32(w),
+        C.i32(h),
+        C.RGFW_format(format),
+		C.RGFW_icon(t),
+    ) == C.RGFW_TRUE
+}
 
 // Sets the mouse icon for the window using a loaded bitmap
-// RGFW_window_setMouse
+func (win *Window) SetMouse(mouse *Mouse) {
+	C.RGFW_window_setMouse(win.ref, mouse.ref)
+}
 
 // Sets the mouse to a standard system cursor.
-// RGFW_window_setMouseStandard
+func (win *Window) SetMouseStandard(mouse MouseIcons) {
+	C.RGFW_window_setMouseStandard(win.ref, C.RGFW_mouseIcons(mouse))
+}
 
 // Sets the mouse to the default cursor icon.
 func (win *Window) SetMouseDefault() bool {
 	return C.RGFW_window_setMouseDefault(win.ref) == C.RGFW_TRUE
 }
 
-// Set (enable or disable) raw mouse mode only for the select window
-// RGFW_window_setRawMouseMode
+// Locks the cursor to the center of the window.
+func (win *Window) HoldMouse() {
+	C.RGFW_window_holdMouse(win.ref)
+}
 
-// Lock/unlock the cursor.
-// RGFW_window_captureMouse
+// Returns true if the mouse is currently held by RGFW.
+func (win *Window) IsHoldingMouse() bool {
+	return C.RGFW_window_isHoldingMouse(win.ref) == C.RGFW_TRUE
+}
 
-// Lock/unlock the cursor and enable raw mpuise mode.
-// RGFW_window_captureRawMouse
-
-// Returns true if the mouse is using raw mouse mode
-// func (win *Window) IsRawMouse() bool {
-// 	return C.RGFW_window_isRawMouseMode(win.ref) == C.RGFW_TRUE
-// }
-
-// Returns true if the mouse is captured
-// func (win *Window) IsCaptured() bool {
-// 	return C.RGFW_window_isCaptured(win.ref) == C.RGFW_TRUE
-// }
+// Releases the mouse so it can move freely again.
+func (win *Window) UnholdMouse() {
+	C.RGFW_window_unholdMouse(win.ref)
+}
 
 // Hides the window from view.
 func (win *Window) Hide() {

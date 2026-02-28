@@ -14,26 +14,25 @@ type Surface struct {
 }
 
 type Mouse struct {
-	ref *C.RGFW_mouse
-	buf unsafe.Pointer
+	ref unsafe.Pointer
 }
 
-// Allocates memory using the allocator defined by RGFW_ALLOC at compile time.
-// RGFW_alloc
+	// Allocates memory using the allocator defined by RGFW_ALLOC at compile time.
+	// RGFW_alloc
 
-// Frees memory using the deallocator defined by RGFW_FREE at compile time.
-// RGFW_free
+	// Frees memory using the deallocator defined by RGFW_FREE at compile time.
+	// RGFW_free
 
-// Returns the size (in bytes) of the RGFW_window structure.
-// RGFW_sizeofWindow
+	// Returns the size (in bytes) of the RGFW_window structure.
+	// RGFW_sizeofWindow
 
-// Returns the size (in bytes) of the RGFW_window_src structure.
-// RGFW_sizeofWindowSrc
+	// Returns the size (in bytes) of the RGFW_window_src structure.
+	// RGFW_sizeofWindowSrc
 
-// (Unix) Toggles the use of Wayland, enabled by default when compiled with RGFW_WAYLAND.
-// If not using RGFW_WAYLAND, Wayland functions are not exposed.
-// This function can be used to force the use of XWayland.
-// RGFW_useWayland
+	// (Unix) Toggles the use of Wayland, enabled by default when compiled with RGFW_WAYLAND.
+	// If not using RGFW_WAYLAND, Wayland functions are not exposed.
+	// This function can be used to force the use of XWayland.
+	// RGFW_useWayland
 
 // Returns true if Wayland is currently being used
 func UsingWayland() bool {
@@ -58,37 +57,37 @@ func GetDisplayWayland() unsafe.Pointer {
 	return unsafe.Pointer(C.RGFW_getDisplay_Wayland())
 }
 
-// Sets the class name for X11 and WinAPI windows.
-// Windows with the same class name will be grouped by the window manager.
-// By default, the class name matches the root window's name.
-// RGFW_setClassName
+	// Sets the class name for X11 and WinAPI windows.
+	// Windows with the same class name will be grouped by the window manager.
+	// By default, the class name matches the root window's name.
+	// RGFW_setClassName
 
-// Sets the X11 instance name.
-// By default, the window name will be used as the instance name.
-// RGFW_setXInstName
+	// Sets the X11 instance name.
+	// By default, the window name will be used as the instance name.
+	// RGFW_setXInstName
 
-// (macOS only) Changes the current working directory to the application's resource folder.
-// RGFW_moveToMacOSResourceDir
+	// (macOS only) Changes the current working directory to the application's resource folder.
+	// RGFW_moveToMacOSResourceDir
 
-// Copy image to another image, respecting each image's format
-// func CopyImageData(dest []uint8, w, h int32, destFmt Format, src []uint8, srcFmt Format) {
-// 	if len(dest) == 0 {
-// 		panic("rgfw: CopyImageData destination buffer nil or empty")
-// 	}
-// 	if len(src) == 0 {
-// 		panic("rgfw: CopyImageData src buffer nil or empty")
-// 	}
-// 	C.RGFW_copyImageData(
-// 		(*C.u8)(&dest[0]), C.i32(w), C.i32(h), C.RGFW_format(destFmt),
-//         (*C.u8)(&src[0]), C.RGFW_format(srcFmt),
-// 	)
-// }
+	// Copy image to another image, respecting each image's format
+	// func CopyImageData(dest []uint8, w, h int32, destFmt Format, src []uint8, srcFmt Format) {
+	// 	if len(dest) == 0 {
+	// 		panic("rgfw: CopyImageData destination buffer nil or empty")
+	// 	}
+	// 	if len(src) == 0 {
+	// 		panic("rgfw: CopyImageData src buffer nil or empty")
+	// 	}
+	// 	C.RGFW_copyImageData(
+	// 		(*C.u8)(&dest[0]), C.i32(w), C.i32(h), C.RGFW_format(destFmt),
+	//         (*C.u8)(&src[0]), C.RGFW_format(srcFmt),
+	// 	)
+	// }
 
-// Returns the size (in bytes) of the RGFW_nativeImage structure.
-// RGFW_sizeofNativeImage
+	// Returns the size (in bytes) of the RGFW_nativeImage structure.
+	// RGFW_sizeofNativeImage
 
-// Returns the size (in bytes) of the RGFW_surface structure.
-// RGFW_sizeofSurface
+	// Returns the size (in bytes) of the RGFW_surface structure.
+	// RGFW_sizeofSurface
 
 // Creates a new surface from raw pixel data.
 //
@@ -142,17 +141,38 @@ func (surface *Surface) FreePtr() {
 // Loads a mouse icon from bitmap data (similar to win.SetIcon)
 //
 // Note: The icon is not resized by default
+//
+// You must free the mouse object with Mouse.Free() after!
 func LoadMouse(data []uint8, w, h int32, format Format) *Mouse {
-	// data is pixels of an image! 
-	panic("Unimplemented")
+	// data is pixels of an image!
+	ref := C.RGFW_loadMouse(
+    	(*C.u8)(unsafe.Pointer((unsafe.SliceData(data)))),
+        C.i32(w),
+        C.i32(h),
+        C.RGFW_format(format),
+    )
+	return &Mouse{ref: ref}
 }
 
 // Frees the data associated with an RGFW_mouse structure
-// RGFW_freeMouse
+func (mouse *Mouse) Free() {
+	C.RGFW_freeMouse(mouse.ref)
+}
 
 // Retrieves an array of all available monitors.
 // Returns a pointer to an array of RGFW_monitor structures and the number of monitors found (max of 6)
-// RGFW_getMonitors
+func GetMonitors() []Monitor {
+	var size C.size_t
+	res := C.RGFW_getMonitors(&size)
+	cm := unsafe.Slice(res, int(size))
+
+	monitors := make([]Monitor, int(size))
+	for i, m := range cm {
+		monitors[i] = goMonitor(m)
+	}
+
+	return monitors
+}
 
 // Retrieves the primary monitor.
 func GetPrimaryMonitor() Monitor {
