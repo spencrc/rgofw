@@ -1,2 +1,2 @@
 #define RGFW_IMPLEMENTATION
-#include "RFGW_impl.h"
+#include "RGFW.h"

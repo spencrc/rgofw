@@ -1,7 +1,7 @@
 package rgfw
 
 /*
-	#include "RFGW_impl.h"
+	#include "RGFW.h"
 */
 import "C"
 
@@ -16,7 +16,10 @@ func GetRootWindow() *Window {
 }
 
 // Pushes an event into the standard RGFW event queue.
-// RGFW_eventQueuePush
+func EventQueuePush(event *Event) {
+	panic("Unimplemented")
+	// need to write helper to convert event to C.RGFW_event
+}
 
 func EventQueueFlush() {
 	C.RGFW_eventQueueFlush()

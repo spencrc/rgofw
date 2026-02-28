@@ -1,7 +1,7 @@
 package rgfw
 
 /*
-	#include "RFGW_impl.h"
+	#include "RGFW.h"
 */
 import "C"
 import (

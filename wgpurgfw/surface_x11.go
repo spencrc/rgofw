@@ -11,7 +11,7 @@ func GetSurfaceDescriptor(w *rgfw.Window) *wgpu.SurfaceDescriptor {
 	return &wgpu.SurfaceDescriptor{
 		XlibWindow: &wgpu.SurfaceDescriptorFromXlibWindow{
 			Display: rgfw.GetDisplayX11(),
-			Window:  w.GetWindowX11(),
+			Window:  uint32(w.GetWindowX11()),
 		},
 	}
 }
